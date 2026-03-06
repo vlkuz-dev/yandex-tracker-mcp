@@ -1,0 +1,318 @@
+[
+  {
+    "operation_id": "getGlobalFields",
+    "domain": "fields",
+    "action": "get_global",
+    "method": "GET",
+    "path": "/v3/fields/",
+    "summary": "Get all global fields"
+  },
+  {
+    "operation_id": "getIssueTypes",
+    "domain": "metadata",
+    "action": "get_issue_types",
+    "method": "GET",
+    "path": "/v3/issuetypes/",
+    "summary": "Get all issue types"
+  },
+  {
+    "operation_id": "getPriorities",
+    "domain": "metadata",
+    "action": "get_priorities",
+    "method": "GET",
+    "path": "/v3/priorities/",
+    "summary": "Get all priorities"
+  },
+  {
+    "operation_id": "getResolutions",
+    "domain": "metadata",
+    "action": "get_resolutions",
+    "method": "GET",
+    "path": "/v3/resolutions/",
+    "summary": "Get all resolutions"
+  },
+  {
+    "operation_id": "getStatuses",
+    "domain": "metadata",
+    "action": "get_statuses",
+    "method": "GET",
+    "path": "/v3/statuses/",
+    "summary": "Get all statuses"
+  },
+  {
+    "operation_id": "findIssues",
+    "domain": "issues",
+    "action": "find",
+    "method": "POST",
+    "path": "/v3/issues/_search",
+    "summary": "Find issues by query",
+    "paginated": true
+  },
+  {
+    "operation_id": "countIssues",
+    "domain": "issues",
+    "action": "count",
+    "method": "POST",
+    "path": "/v3/issues/_count",
+    "summary": "Get issue count by query"
+  },
+  {
+    "operation_id": "createIssue",
+    "domain": "issue",
+    "action": "create",
+    "method": "POST",
+    "path": "/v3/issues/",
+    "summary": "Create issue"
+  },
+  {
+    "operation_id": "getIssue",
+    "domain": "issue",
+    "action": "get",
+    "method": "GET",
+    "path": "/v3/issues/{issue_id}",
+    "summary": "Get issue by id"
+  },
+  {
+    "operation_id": "updateIssue",
+    "domain": "issue",
+    "action": "update",
+    "method": "PATCH",
+    "path": "/v3/issues/{issue_id}",
+    "summary": "Update issue"
+  },
+  {
+    "operation_id": "getIssueTransitions",
+    "domain": "issue",
+    "action": "get_transitions",
+    "method": "GET",
+    "path": "/v3/issues/{issue_id}/transitions/",
+    "summary": "Get issue transitions"
+  },
+  {
+    "operation_id": "executeIssueTransition",
+    "domain": "issue",
+    "action": "execute_transition",
+    "method": "POST",
+    "path": "/v3/issues/{issue_id}/transitions/{transition_id}/_execute",
+    "summary": "Execute issue transition"
+  },
+  {
+    "operation_id": "getIssueAttachments",
+    "domain": "issue",
+    "action": "get_attachments",
+    "method": "GET",
+    "path": "/v3/issues/{issue_id}/attachments/",
+    "summary": "Get issue attachments",
+    "paginated": true
+  },
+  {
+    "operation_id": "getIssueChecklist",
+    "domain": "issue",
+    "action": "get_checklist",
+    "method": "GET",
+    "path": "/v3/issues/{issue_id}/checklistItems/",
+    "summary": "Get issue checklist"
+  },
+  {
+    "operation_id": "getIssueLinks",
+    "domain": "issue",
+    "action": "get_links",
+    "method": "GET",
+    "path": "/v3/issues/{issue_id}/links/",
+    "summary": "Get issue links",
+    "paginated": true
+  },
+  {
+    "operation_id": "getIssueWorklogs",
+    "domain": "issue",
+    "action": "get_worklogs",
+    "method": "POST",
+    "path": "/v3/issues/{issue_id}/worklog/_search",
+    "summary": "Get issue worklogs"
+  },
+  {
+    "operation_id": "addIssueWorklog",
+    "domain": "issue",
+    "action": "add_worklog",
+    "method": "POST",
+    "path": "/v3/issues/{issue_id}/worklog/",
+    "summary": "Add issue worklog"
+  },
+  {
+    "operation_id": "updateIssueWorklog",
+    "domain": "issue",
+    "action": "update_worklog",
+    "method": "PATCH",
+    "path": "/v3/issues/{issue_id}/worklog/{worklog_id}",
+    "summary": "Update issue worklog"
+  },
+  {
+    "operation_id": "deleteIssueWorklog",
+    "domain": "issue",
+    "action": "delete_worklog",
+    "method": "DELETE",
+    "path": "/v3/issues/{issue_id}/worklog/{worklog_id}",
+    "summary": "Delete issue worklog"
+  },
+  {
+    "operation_id": "getIssueComments",
+    "domain": "issue",
+    "action": "get_comments",
+    "method": "GET",
+    "path": "/v3/issues/{issue_id}/comments/",
+    "summary": "Get issue comments",
+    "paginated": true
+  },
+  {
+    "operation_id": "addIssueComment",
+    "domain": "issue",
+    "action": "add_comment",
+    "method": "POST",
+    "path": "/v3/issues/{issue_id}/comments/",
+    "summary": "Add issue comment"
+  },
+  {
+    "operation_id": "updateIssueComment",
+    "domain": "issue",
+    "action": "update_comment",
+    "method": "PATCH",
+    "path": "/v3/issues/{issue_id}/comments/{comment_id}",
+    "summary": "Update issue comment"
+  },
+  {
+    "operation_id": "deleteIssueComment",
+    "domain": "issue",
+    "action": "delete_comment",
+    "method": "DELETE",
+    "path": "/v3/issues/{issue_id}/comments/{comment_id}",
+    "summary": "Delete issue comment"
+  },
+  {
+    "operation_id": "listQueues",
+    "domain": "queues",
+    "action": "list",
+    "method": "GET",
+    "path": "/v3/queues/",
+    "summary": "List queues",
+    "paginated": true
+  },
+  {
+    "operation_id": "getQueueMetadata",
+    "domain": "queue",
+    "action": "get_metadata",
+    "method": "GET",
+    "path": "/v3/queues/{queue_id}",
+    "summary": "Get queue metadata"
+  },
+  {
+    "operation_id": "getQueueFields",
+    "domain": "queue",
+    "action": "get_fields",
+    "method": "GET",
+    "path": "/v3/queues/{queue_id}/fields",
+    "summary": "Get queue fields"
+  },
+  {
+    "operation_id": "getQueueTags",
+    "domain": "queue",
+    "action": "get_tags",
+    "method": "GET",
+    "path": "/v3/queues/{queue_id}/tags",
+    "summary": "Get queue tags",
+    "paginated": true
+  },
+  {
+    "operation_id": "getQueueVersions",
+    "domain": "queue",
+    "action": "get_versions",
+    "method": "GET",
+    "path": "/v3/queues/{queue_id}/versions",
+    "summary": "Get queue versions",
+    "paginated": true
+  },
+  {
+    "operation_id": "getCurrentUser",
+    "domain": "user",
+    "action": "get_current",
+    "method": "GET",
+    "path": "/v3/myself",
+    "summary": "Get current user"
+  },
+  {
+    "operation_id": "getUser",
+    "domain": "user",
+    "action": "get",
+    "method": "GET",
+    "path": "/v3/users/{user_id}",
+    "summary": "Get user by id"
+  },
+  {
+    "operation_id": "searchUsers",
+    "domain": "users",
+    "action": "search",
+    "method": "GET",
+    "path": "/v3/users",
+    "summary": "Search users",
+    "paginated": true
+  },
+  {
+    "operation_id": "listUsers",
+    "domain": "users",
+    "action": "list",
+    "method": "GET",
+    "path": "/v3/users/",
+    "summary": "List users",
+    "paginated": true
+  },
+  {
+    "operation_id": "listBoards",
+    "domain": "boards",
+    "action": "list",
+    "method": "GET",
+    "path": "/v3/boards/",
+    "summary": "List boards",
+    "paginated": true
+  },
+  {
+    "operation_id": "getBoard",
+    "domain": "board",
+    "action": "get",
+    "method": "GET",
+    "path": "/v3/boards/{board_id}",
+    "summary": "Get board"
+  },
+  {
+    "operation_id": "listSprints",
+    "domain": "sprints",
+    "action": "list",
+    "method": "GET",
+    "path": "/v3/sprints/",
+    "summary": "List sprints",
+    "paginated": true
+  },
+  {
+    "operation_id": "getSprint",
+    "domain": "sprint",
+    "action": "get",
+    "method": "GET",
+    "path": "/v3/sprints/{sprint_id}",
+    "summary": "Get sprint"
+  },
+  {
+    "operation_id": "listProjects",
+    "domain": "projects",
+    "action": "list",
+    "method": "GET",
+    "path": "/v3/projects/",
+    "summary": "List projects",
+    "paginated": true
+  },
+  {
+    "operation_id": "getProject",
+    "domain": "project",
+    "action": "get",
+    "method": "GET",
+    "path": "/v3/projects/{project_id}",
+    "summary": "Get project"
+  }
+]
