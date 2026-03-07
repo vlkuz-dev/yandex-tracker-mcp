@@ -51,7 +51,7 @@ def normalize_page(payload: Any) -> PaginatedEnvelope:
 def _to_int(value: Any, *, default: int) -> int:
     if isinstance(value, int):
         return value
-    if isinstance(value, str) and value.isdigit():
+    if isinstance(value, str) and value.isdecimal():
         return int(value)
     return default
 

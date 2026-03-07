@@ -92,6 +92,9 @@ def validate_raw_request(method: str, path: str) -> RawGuardResult:
     normalized_path = _normalize_path(path)
     parts = [part for part in PurePosixPath(normalized_path).parts if part not in {"/", ""}]
 
+    if ".." in parts:
+        raise TrackerConfigError("Path traversal segments ('..') are not allowed")
+
     if len(parts) < 2 or parts[0] != "v3":
         raise TrackerConfigError("Raw requests are limited to /v3/* paths")
 

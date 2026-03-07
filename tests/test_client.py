@@ -166,6 +166,23 @@ async def test_request_wraps_closed_client_error(settings: Settings) -> None:
 
 @respx.mock
 @pytest.mark.asyncio
+async def test_request_retries_once_on_network_error(settings: Settings) -> None:
+    route = respx.get("https://api.tracker.yandex.net/v3/myself").mock(
+        side_effect=[
+            httpx.ConnectError("connection refused"),
+            httpx.Response(200, json={"uid": "1"}),
+        ]
+    )
+
+    async with TrackerClient(settings) as client:
+        payload = await client.request(method="GET", path="/v3/myself")
+
+    assert route.call_count == 2
+    assert payload == {"uid": "1"}
+
+
+@respx.mock
+@pytest.mark.asyncio
 async def test_persistent_client_reused_across_requests(settings: Settings) -> None:
     respx.get("https://api.tracker.yandex.net/v3/myself").mock(
         return_value=httpx.Response(200, json={"uid": "1"})
