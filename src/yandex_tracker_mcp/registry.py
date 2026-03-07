@@ -94,6 +94,9 @@ def validate_raw_request(method: str, path: str) -> RawGuardResult:
     decoded_path = _fully_decode(normalized_path)
     parts = [part for part in PurePosixPath(decoded_path).parts if part not in {"/", ""}]
 
+    if "\x00" in decoded_path:
+        raise TrackerConfigError("Null bytes are not allowed in request paths")
+
     if ".." in parts:
         raise TrackerConfigError("Path traversal segments ('..') are not allowed")
 

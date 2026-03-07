@@ -42,6 +42,11 @@ def test_validate_raw_request_rejects_double_encoded_path_traversal() -> None:
         validate_raw_request(method="GET", path="/v3/issues/%252e%252e/%252e%252e/admin/settings")
 
 
+def test_validate_raw_request_rejects_null_byte() -> None:
+    with pytest.raises(TrackerConfigError, match="Null bytes"):
+        validate_raw_request(method="GET", path="/v3/issues/foo%00bar")
+
+
 def test_validate_raw_request_returns_decoded_path() -> None:
     result = validate_raw_request(method="GET", path="/v3/issues/TEST%2D1")
     assert result.normalized_path == "/v3/issues/TEST-1"
