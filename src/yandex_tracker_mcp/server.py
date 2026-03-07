@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from typing import Any
+
 from fastmcp import FastMCP
 
 from .client import TrackerClient
@@ -13,7 +17,15 @@ def create_server(settings: Settings | None = None) -> FastMCP:
     runtime_settings = settings or Settings.from_env()
     client = TrackerClient(runtime_settings)
 
-    server = FastMCP(name="yandex-tracker", instructions=_instructions())
+    @asynccontextmanager
+    async def lifespan(_server: FastMCP) -> AsyncIterator[dict[str, Any]]:
+        await client.start()
+        try:
+            yield {"client": client}
+        finally:
+            await client.stop()
+
+    server = FastMCP(name="yandex-tracker", instructions=_instructions(), lifespan=lifespan)
     register_tools(server, client)
     return server
 
@@ -24,4 +36,3 @@ def _instructions() -> str:
         "Use tracker_raw_request for uncovered v3 endpoints. "
         "Respect Yandex Tracker API v3 parameter and field naming."
     )
-

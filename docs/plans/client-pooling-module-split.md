@@ -53,12 +53,12 @@
 - [x] Run tests — must pass before next task
 
 ### Task 2: Wire client lifecycle into FastMCP lifespan
-- [ ] Add lifespan async context manager in `server.py` that starts/stops `TrackerClient`
-- [ ] Pass lifespan to `FastMCP(...)` constructor
-- [ ] Remove direct `TrackerClient(settings)` construction — use lifespan-managed instance
-- [ ] Verify server still starts and tools are registered correctly
-- [ ] Write test for `create_server()` verifying lifespan is configured
-- [ ] Run tests — must pass before next task
+- [x] Add lifespan async context manager in `server.py` that starts/stops `TrackerClient`
+- [x] Pass lifespan to `FastMCP(...)` constructor
+- [x] Remove direct `TrackerClient(settings)` construction — use lifespan-managed instance
+- [x] Verify server still starts and tools are registered correctly
+- [x] Write test for `create_server()` verifying lifespan is configured
+- [x] Run tests — must pass before next task
 
 ### Task 3: Extract pagination into dedicated module
 - [ ] Create `src/yandex_tracker_mcp/pagination.py`
