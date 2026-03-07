@@ -147,6 +147,23 @@ async def test_start_is_idempotent(settings: Settings) -> None:
     await client.stop()
 
 
+@pytest.mark.asyncio
+async def test_request_wraps_closed_client_error(settings: Settings) -> None:
+    client = TrackerClient(settings)
+    await client.start()
+    # Close the underlying httpx client to simulate shutdown during request
+    await client._http.aclose()
+
+    with pytest.raises(TrackerAPIError) as exc:
+        await client.request(method="GET", path="/v3/myself")
+
+    assert exc.value.status_code == 0
+    assert "closed" in exc.value.message.lower()
+
+    # Clean up (client._http is still set but closed)
+    client._http = None
+
+
 @respx.mock
 @pytest.mark.asyncio
 async def test_persistent_client_reused_across_requests(settings: Settings) -> None:

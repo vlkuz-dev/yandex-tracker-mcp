@@ -81,6 +81,12 @@ class TrackerClient:
                     ) from exc
                 await asyncio.sleep(_retry_delay(attempt))
                 continue
+            except RuntimeError as exc:
+                raise TrackerAPIError(
+                    status_code=0,
+                    message="HTTP client was closed during request",
+                    details={"error": str(exc)},
+                ) from exc
 
             if response.status_code in RETRYABLE_STATUS_CODES and attempt <= self._settings.retries:
                 await asyncio.sleep(_retry_delay(attempt))
