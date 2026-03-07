@@ -73,7 +73,7 @@ class TrackerClient:
                     json=body,
                 )
             except httpx.RequestError as exc:
-                if attempt > self._settings.retries + 1:
+                if attempt > self._settings.retries:
                     raise TrackerAPIError(
                         status_code=0,
                         message="Network request to Tracker API failed",
@@ -119,7 +119,10 @@ def _build_path(path_template: str, path_params: JSONMapping | None) -> str:
         raw_value = params[key]
         if raw_value is None:
             raise TrackerConfigError(f"Path parameter cannot be null: {key}")
-        return str(raw_value)
+        value_str = str(raw_value)
+        if "/" in value_str:
+            raise TrackerConfigError(f"Path parameter must not contain '/': {key}")
+        return value_str
 
     built = _PATH_PARAM_RE.sub(replace, path_template)
     if "{" in built or "}" in built:
