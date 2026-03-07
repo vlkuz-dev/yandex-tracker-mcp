@@ -92,9 +92,9 @@
 - [x] Verify all checks pass (`make check`)
 
 ### Task 6: [Final] Update documentation
-- [ ] Update CHANGELOG.md with refactoring entry under [Unreleased]
-- [ ] Update README.md if any public API changed
-- [ ] Update CONTRIBUTING.md if new modules affect developer workflow
+- [x] Update CHANGELOG.md with refactoring entry under [Unreleased]
+- [x] Update README.md if any public API changed
+- [x] Update CONTRIBUTING.md if new modules affect developer workflow
 
 ## Technical Details
 

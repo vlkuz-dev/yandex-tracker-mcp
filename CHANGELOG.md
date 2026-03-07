@@ -6,6 +6,14 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Changed
+
+- Refactored `TrackerClient` to use a persistent `httpx.AsyncClient` with connection pooling instead of creating a new client per request.
+- Added client lifecycle management (`start`/`stop`) wired into FastMCP lifespan hooks.
+- Extracted pagination normalization from `tools.py` into dedicated `pagination.py` module.
+- Extracted handler building from `tools.py` into dedicated `handlers.py` module.
+- Simplified `tools.py` to orchestration-only role.
+
 ## [0.1.0] - 2026-03-06
 
 ### Added
