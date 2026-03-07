@@ -6,6 +6,17 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-03-07
+
+### Added
+
+- Comment shaping: `get_comments` responses now compact to text, author, timestamp, and mentioned users (67% size reduction).
+- Action-aware shaper routing: issue sub-resources (comments, transitions, attachments, etc.) get appropriate shapers instead of incorrectly applying the issue shaper.
+
+### Changed
+
+- Paginated issue listings now exclude description, followers, timestamps, and other verbose fields for concise summaries (~86% per-issue reduction). Single-issue detail views retain all fields.
+
 ## [0.1.3] - 2026-03-07
 
 ### Added
