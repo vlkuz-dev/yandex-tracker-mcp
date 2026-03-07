@@ -6,6 +6,16 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-03-07
+
+### Changed
+
+- Removed duplicate `raw` field from `PaginatedEnvelope` response (~50% token savings).
+- Default `perPage=10` for paginated operations instead of API default of 50 (~80% item reduction).
+- Non-paginated responses now return API data directly instead of wrapping in metadata envelope.
+- Added response shaping for issue objects: strips irrelevant fields and flattens nested objects (e.g. `status` → display name, `queue` → key).
+- Added `_compact=false` query parameter to opt out of response shaping.
+
 ## [0.1.1] - 2026-03-07
 
 ### Changed
