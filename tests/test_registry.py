@@ -30,3 +30,8 @@ def test_validate_raw_request_rejects_unknown_namespace() -> None:
 def test_validate_raw_request_rejects_path_traversal() -> None:
     with pytest.raises(TrackerConfigError, match="Path traversal"):
         validate_raw_request(method="GET", path="/v3/issues/../../../admin")
+
+
+def test_validate_raw_request_rejects_url_encoded_path_traversal() -> None:
+    with pytest.raises(TrackerConfigError, match="Path traversal"):
+        validate_raw_request(method="GET", path="/v3/issues/%2e%2e/%2e%2e/admin/settings")

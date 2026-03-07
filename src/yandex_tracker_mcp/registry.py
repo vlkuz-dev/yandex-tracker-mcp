@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import urllib.parse
 from functools import lru_cache
 from importlib import resources
 from pathlib import PurePosixPath
@@ -90,7 +91,8 @@ def validate_raw_request(method: str, path: str) -> RawGuardResult:
         )
 
     normalized_path = _normalize_path(path)
-    parts = [part for part in PurePosixPath(normalized_path).parts if part not in {"/", ""}]
+    decoded_path = urllib.parse.unquote(normalized_path)
+    parts = [part for part in PurePosixPath(decoded_path).parts if part not in {"/", ""}]
 
     if ".." in parts:
         raise TrackerConfigError("Path traversal segments ('..') are not allowed")

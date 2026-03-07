@@ -14,6 +14,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Extracted handler building from `tools.py` into dedicated `handlers.py` module.
 - Simplified `tools.py` to orchestration-only role.
 
+### Fixed
+
+- Fixed off-by-one in network error retry logic — `retries` setting now consistently means N retries beyond the initial attempt for both network errors and HTTP status retries.
+- Fixed URL-encoded path traversal bypass in raw request validation (`%2e%2e` no longer bypasses `..` check).
+
 ## [0.1.0] - 2026-03-06
 
 ### Added
