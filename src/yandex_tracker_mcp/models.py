@@ -36,14 +36,21 @@ class RawGuardResult:
 @dataclass(slots=True)
 class PaginatedEnvelope:
     results: list[Any]
+    total: int | None
     count: int
+    has_more: bool
     next: str | None
     prev: str | None
 
     def to_dict(self) -> JSONMapping:
-        return {
+        d: JSONMapping = {
             "results": self.results,
+            "total": self.total,
             "count": self.count,
-            "next": self.next,
-            "prev": self.prev,
+            "has_more": self.has_more,
         }
+        if self.next:
+            d["next"] = self.next
+        if self.prev:
+            d["prev"] = self.prev
+        return d

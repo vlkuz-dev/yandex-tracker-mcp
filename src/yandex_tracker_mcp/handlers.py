@@ -48,9 +48,11 @@ def build_typed_handler(
             path_params=path_params,
             query=query,
             body=body,
+            include_headers=operation.paginated,
         )
         if operation.paginated:
-            page = normalize_page(response)
+            body_data, headers = response
+            page = normalize_page(body_data, headers)
             if compact and shaper:
                 page.results = [shaper(item) for item in page.results]
             return page.to_dict()

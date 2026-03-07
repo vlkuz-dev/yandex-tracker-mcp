@@ -9,9 +9,31 @@ def test_normalize_page_from_array() -> None:
     data = result.to_dict()
 
     assert data["count"] == 1
+    assert data["total"] is None
+    assert data["has_more"] is False
     assert data["results"] == [{"id": 1}]
-    assert data["next"] is None
-    assert data["prev"] is None
+
+
+def test_normalize_page_from_array_with_headers() -> None:
+    payload = [{"id": 1}, {"id": 2}]
+    headers = {
+        "x-total-count": "25",
+        "link": '<https://example.com?page=2>; rel="next"',
+    }
+    result = normalize_page(payload, headers)
+
+    assert result.total == 25
+    assert result.count == 2
+    assert result.has_more is True
+
+
+def test_normalize_page_from_array_no_next_link() -> None:
+    payload = [{"id": 1}]
+    headers = {"x-total-count": "1"}
+    result = normalize_page(payload, headers)
+
+    assert result.total == 1
+    assert result.has_more is False
 
 
 # --- normalize_page: results shape ---
@@ -27,8 +49,9 @@ def test_normalize_page_from_results_shape() -> None:
     result = normalize_page(payload)
     data = result.to_dict()
 
-    assert data["count"] == 10
-    assert len(data["results"]) == 2
+    assert data["total"] == 10
+    assert data["count"] == 2
+    assert data["has_more"] is True
     assert data["next"] == "cursor2"
     assert data["prev"] == "cursor0"
 
@@ -46,6 +69,7 @@ def test_normalize_page_results_defaults_count_to_len() -> None:
     payload = {"results": [{"a": 1}, {"a": 2}, {"a": 3}]}
     result = normalize_page(payload)
     assert result.count == 3
+    assert result.total == 3
 
 
 # --- normalize_page: values/total shape ---
@@ -61,8 +85,9 @@ def test_normalize_page_from_values_shape() -> None:
     result = normalize_page(payload)
     data = result.to_dict()
 
-    assert data["count"] == 50
-    assert len(data["results"]) == 2
+    assert data["total"] == 50
+    assert data["count"] == 2
+    assert data["has_more"] is True
     assert data["next"] == "page2"
     assert data["prev"] == "page0"
 
@@ -71,6 +96,7 @@ def test_normalize_page_values_defaults_count_to_len() -> None:
     payload = {"values": [{"k": 1}]}
     result = normalize_page(payload)
     assert result.count == 1
+    assert result.total == 1
     assert result.next is None
     assert result.prev is None
 
@@ -85,8 +111,7 @@ def test_normalize_page_unrecognized_dict() -> None:
 
     assert data["results"] == []
     assert data["count"] == 0
-    assert data["next"] is None
-    assert data["prev"] is None
+    assert data["has_more"] is False
 
 
 def test_normalize_page_non_list_non_dict() -> None:

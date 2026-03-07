@@ -59,6 +59,7 @@ class TrackerClient:
         path: str,
         query: JSONMapping | None = None,
         body: Any | None = None,
+        include_headers: bool = False,
     ) -> Any:
         http = self._ensure_started()
         url = f"{self._settings.base_url}{path}"
@@ -101,7 +102,10 @@ class TrackerClient:
 
             content_type = response.headers.get("content-type", "")
             if "application/json" in content_type:
-                return response.json()
+                body = response.json()
+                if include_headers:
+                    return body, dict(response.headers)
+                return body
             return {"raw": response.text, "status_code": response.status_code}
 
     async def call_operation(
@@ -111,9 +115,16 @@ class TrackerClient:
         path_params: JSONMapping | None = None,
         query: JSONMapping | None = None,
         body: Any | None = None,
+        include_headers: bool = False,
     ) -> Any:
         built_path = _build_path(operation.path, path_params)
-        return await self.request(method=operation.method, path=built_path, query=query, body=body)
+        return await self.request(
+            method=operation.method,
+            path=built_path,
+            query=query,
+            body=body,
+            include_headers=include_headers,
+        )
 
 
 def _build_path(path_template: str, path_params: JSONMapping | None) -> str:

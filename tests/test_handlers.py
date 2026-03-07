@@ -41,6 +41,18 @@ def _mock_client(response: Any) -> AsyncMock:
     return client
 
 
+def _paginated_response(
+    body: Any, *, total: int | None = None, has_next: bool = False
+) -> tuple[Any, dict[str, str]]:
+    """Build a (body, headers) tuple as returned by include_headers=True."""
+    headers: dict[str, str] = {}
+    if total is not None:
+        headers["x-total-count"] = str(total)
+    if has_next:
+        headers["link"] = '<https://example.com?page=2>; rel="next"'
+    return body, headers
+
+
 class TestBuildTypedHandler:
     """Tests for build_typed_handler callable construction."""
 
@@ -94,6 +106,7 @@ class TestNonPaginatedHandler:
             path_params={"issueKey": "PROJ-1"},
             query={"expand": "transitions"},
             body=None,
+            include_headers=False,
         )
 
 
@@ -104,15 +117,27 @@ class TestPaginatedHandler:
     async def test_returns_paginated_envelope(self) -> None:
         operation = _make_paginated_operation()
         api_data = [{"key": "PROJ-1"}, {"key": "PROJ-2"}]
-        client = _mock_client(api_data)
+        client = _mock_client(_paginated_response(api_data, total=2))
 
         handler = build_typed_handler(client, operation)
         result = await handler(body={"filter": {}})
 
-        assert result["results"] == api_data
         assert result["count"] == 2
-        assert result["next"] is None
-        assert result["prev"] is None
+        assert result["total"] == 2
+        assert result["has_more"] is False
+
+    @pytest.mark.asyncio
+    async def test_paginated_with_more_pages(self) -> None:
+        operation = _make_paginated_operation()
+        api_data = [{"key": "A-1"}]
+        client = _mock_client(_paginated_response(api_data, total=25, has_next=True))
+
+        handler = build_typed_handler(client, operation)
+        result = await handler()
+
+        assert result["count"] == 1
+        assert result["total"] == 25
+        assert result["has_more"] is True
 
     @pytest.mark.asyncio
     async def test_paginated_dict_response(self) -> None:
@@ -122,19 +147,20 @@ class TestPaginatedHandler:
             "count": 10,
             "next": "/v3/issues/_search?page=2",
         }
-        client = _mock_client(api_data)
+        client = _mock_client(_paginated_response(api_data, total=10))
 
         handler = build_typed_handler(client, operation)
         result = await handler()
 
         assert result["results"] == [{"key": "A-1"}]
-        assert result["count"] == 10
-        assert result["next"] == "/v3/issues/_search?page=2"
+        assert result["count"] == 1
+        assert result["total"] == 10
+        assert result["has_more"] is True
 
     @pytest.mark.asyncio
     async def test_injects_default_per_page(self) -> None:
         operation = _make_paginated_operation()
-        client = _mock_client([])
+        client = _mock_client(_paginated_response([]))
 
         handler = build_typed_handler(client, operation)
         await handler(body={"filter": {}})
@@ -145,7 +171,7 @@ class TestPaginatedHandler:
     @pytest.mark.asyncio
     async def test_preserves_user_per_page(self) -> None:
         operation = _make_paginated_operation()
-        client = _mock_client([])
+        client = _mock_client(_paginated_response([]))
 
         handler = build_typed_handler(client, operation)
         await handler(query={"perPage": 50}, body={"filter": {}})
@@ -188,7 +214,7 @@ class TestShapingIntegration:
                 "status": {"id": "1", "key": "open", "display": "Open", "self": "..."},
             },
         ]
-        client = _mock_client(api_data)
+        client = _mock_client(_paginated_response(api_data, total=1))
 
         handler = build_typed_handler(client, operation)
         result = await handler(body={"filter": {}})
@@ -218,7 +244,7 @@ class TestShapingIntegration:
     async def test_compact_false_paginated_skips_shaping(self) -> None:
         operation = _make_paginated_operation()
         raw_issue = {"key": "PROJ-1", "votes": 10, "favorite": True}
-        client = _mock_client([raw_issue])
+        client = _mock_client(_paginated_response([raw_issue]))
 
         handler = build_typed_handler(client, operation)
         result = await handler(query={"_compact": False}, body={})
