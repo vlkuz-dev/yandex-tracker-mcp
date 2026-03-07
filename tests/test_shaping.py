@@ -1,6 +1,6 @@
-"""Tests for the shaping module (compact issue representation)."""
+"""Tests for the shaping module (compact issue/comment representation)."""
 
-from yandex_tracker_mcp.shaping import compact_issue, get_shaper
+from yandex_tracker_mcp.shaping import compact_comment, compact_issue, get_shaper
 
 
 class TestCompactIssue:
@@ -157,7 +157,7 @@ class TestCompactIssueForList:
             "createdBy", "updatedBy", "createdAt", "updatedAt",
         )
         for field in excluded:
-            assert field not in result, f"{field} should be excluded in list mode"
+            assert field not in result, f"{field} should be excluded"
 
     def test_keeps_essential_fields(self) -> None:
         issue = {
@@ -182,30 +182,99 @@ class TestCompactIssueForList:
         assert result["tags"] == ["urgent"]
 
 
+class TestCompactComment:
+    """Tests for compact_comment."""
+
+    def test_keeps_text_and_author(self) -> None:
+        comment = {
+            "id": 123,
+            "text": "Please approve",
+            "createdBy": {
+                "id": "u1",
+                "display": "Alice",
+                "cloudUid": "abc",
+                "passportUid": 999,
+                "self": "...",
+            },
+            "createdAt": "2025-01-01T00:00:00.000+0000",
+            "self": "https://...",
+            "longId": "abc123",
+            "version": 1,
+        }
+        result = compact_comment(comment)
+        assert result["id"] == 123
+        assert result["text"] == "Please approve"
+        assert result["createdBy"] == "Alice"
+        assert result["createdAt"] == "2025-01-01T00:00:00.000+0000"
+        assert "self" not in result
+        assert "longId" not in result
+        assert "version" not in result
+
+    def test_flattens_summonees(self) -> None:
+        comment = {
+            "id": 456,
+            "text": "@bob please review",
+            "summonees": [
+                {"id": "u2", "display": "Bob", "self": "..."},
+            ],
+        }
+        result = compact_comment(comment)
+        assert result["summonees"] == ["Bob"]
+
+    def test_list_mode_excludes_verbose(self) -> None:
+        comment = {
+            "id": 789,
+            "text": "Done",
+            "createdBy": {"id": "u1", "display": "Alice", "self": "..."},
+            "createdAt": "2025-01-01T00:00:00.000+0000",
+            "updatedAt": "2025-01-02T00:00:00.000+0000",
+            "transport": "internal",
+            "type": "standard",
+        }
+        result = compact_comment(comment, for_list=True)
+        assert result["text"] == "Done"
+        assert result["createdBy"] == "Alice"
+        assert "updatedAt" not in result
+        assert "transport" not in result
+        assert result["type"] == "standard"
+
+
 class TestGetShaper:
-    """Tests for get_shaper domain routing."""
+    """Tests for get_shaper domain/action routing."""
 
-    def test_returns_shaper_for_issue_domain(self) -> None:
-        assert get_shaper("issue") is not None
-
-    def test_returns_shaper_for_issues_domain(self) -> None:
-        assert get_shaper("issues") is not None
-
-    def test_returns_list_shaper_for_issues(self) -> None:
-        shaper = get_shaper("issues", for_list=True)
+    def test_returns_issue_shaper_for_get(self) -> None:
+        shaper = get_shaper("issue", "get")
         assert shaper is not None
-        # List shaper should exclude description
-        result = shaper({"key": "X-1", "description": "text"})
-        assert "description" not in result
-
-    def test_returns_detail_shaper_by_default(self) -> None:
-        shaper = get_shaper("issue")
-        assert shaper is not None
-        # Detail shaper should keep description
         result = shaper({"key": "X-1", "description": "text"})
         assert result["description"] == "text"
 
+    def test_returns_issue_list_shaper_for_find(self) -> None:
+        shaper = get_shaper("issues", "find", for_list=True)
+        assert shaper is not None
+        result = shaper({"key": "X-1", "description": "text"})
+        assert "description" not in result
+
+    def test_returns_comment_shaper_for_get_comments(self) -> None:
+        shaper = get_shaper("issue", "get_comments")
+        assert shaper is not None
+        result = shaper({"id": 1, "text": "hi", "longId": "abc", "version": 1})
+        assert result["text"] == "hi"
+        assert "longId" not in result
+
+    def test_returns_comment_list_shaper(self) -> None:
+        shaper = get_shaper("issue", "get_comments", for_list=True)
+        assert shaper is not None
+        comment = {"id": 1, "text": "hi", "transport": "internal"}
+        result = shaper(comment)
+        assert "transport" not in result
+
+    def test_returns_none_for_passthrough_actions(self) -> None:
+        assert get_shaper("issue", "get_transitions") is None
+        assert get_shaper("issue", "get_attachments") is None
+        assert get_shaper("issue", "get_checklist") is None
+        assert get_shaper("issue", "get_links") is None
+
     def test_returns_none_for_other_domains(self) -> None:
-        assert get_shaper("queue") is None
-        assert get_shaper("user") is None
-        assert get_shaper("board") is None
+        assert get_shaper("queue", "get_metadata") is None
+        assert get_shaper("user", "get") is None
+        assert get_shaper("board", "get") is None

@@ -25,8 +25,8 @@ def build_typed_handler(
     API response directly.
     """
 
-    detail_shaper = get_shaper(operation.domain)
-    list_shaper = get_shaper(operation.domain, for_list=True)
+    detail_shaper = get_shaper(operation.domain, operation.action)
+    list_shaper = get_shaper(operation.domain, operation.action, for_list=True)
 
     async def _handler(
         path_params: dict[str, Any] | None = None,

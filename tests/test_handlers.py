@@ -297,3 +297,52 @@ class TestShapingIntegration:
         result = await handler()
 
         assert result == api_data
+
+    @pytest.mark.asyncio
+    async def test_comments_use_comment_shaper(self) -> None:
+        operation = OperationSpec(
+            operation_id="getIssueComments",
+            domain="issue",
+            action="get_comments",
+            method="GET",
+            path="/v3/issues/{issue_id}/comments/",
+            summary="Get issue comments",
+            paginated=True,
+        )
+        raw_comment = {
+            "id": 123,
+            "text": "Please approve",
+            "createdBy": {"id": "u1", "display": "Alice", "self": "..."},
+            "longId": "abc123",
+            "version": 1,
+            "self": "https://...",
+        }
+        client = _mock_client(_paginated_response([raw_comment], total=1))
+
+        handler = build_typed_handler(client, operation)
+        result = await handler(path_params={"issue_id": "X-1"})
+
+        item = result["results"][0]
+        assert item["text"] == "Please approve"
+        assert item["createdBy"] == "Alice"
+        assert "longId" not in item
+        assert "version" not in item
+        assert "self" not in item
+
+    @pytest.mark.asyncio
+    async def test_transitions_pass_through(self) -> None:
+        operation = OperationSpec(
+            operation_id="getIssueTransitions",
+            domain="issue",
+            action="get_transitions",
+            method="GET",
+            path="/v3/issues/{issue_id}/transitions/",
+            summary="Get issue transitions",
+        )
+        api_data = [{"id": "1", "display": "Close", "to": {"key": "closed"}}]
+        client = _mock_client(api_data)
+
+        handler = build_typed_handler(client, operation)
+        result = await handler(path_params={"issue_id": "X-1"})
+
+        assert result == api_data
