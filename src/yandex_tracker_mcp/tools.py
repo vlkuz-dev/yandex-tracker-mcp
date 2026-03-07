@@ -8,7 +8,8 @@ from typing import Any
 from fastmcp import FastMCP
 
 from .client import TrackerClient
-from .models import OperationSpec, PaginatedEnvelope
+from .models import OperationSpec
+from .pagination import normalize_page
 from .registry import typed_operations, validate_raw_request
 
 
@@ -93,7 +94,7 @@ def _build_typed_handler(
             body=body,
         )
         if operation.paginated:
-            page = _normalize_page(response)
+            page = normalize_page(response)
             return page.to_dict()
         return {
             "operation_id": operation.operation_id,
@@ -106,56 +107,3 @@ def _build_typed_handler(
     return _handler
 
 
-def _normalize_page(payload: Any) -> PaginatedEnvelope:
-    if isinstance(payload, list):
-        return PaginatedEnvelope(
-            results=payload,
-            count=len(payload),
-            next=None,
-            prev=None,
-            raw=payload,
-        )
-
-    if isinstance(payload, dict):
-        if isinstance(payload.get("results"), list):
-            results = payload["results"]
-            count = _to_int(payload.get("count"), default=len(results))
-            next_page = _to_optional_str(payload.get("next"))
-            prev_page = _to_optional_str(payload.get("previous")) or _to_optional_str(
-                payload.get("prev")
-            )
-            return PaginatedEnvelope(
-                results=results,
-                count=count,
-                next=next_page,
-                prev=prev_page,
-                raw=payload,
-            )
-
-        if isinstance(payload.get("values"), list):
-            results = payload["values"]
-            count = _to_int(payload.get("total"), default=len(results))
-            return PaginatedEnvelope(
-                results=results,
-                count=count,
-                next=_to_optional_str(payload.get("next")),
-                prev=_to_optional_str(payload.get("prev")),
-                raw=payload,
-            )
-
-    return PaginatedEnvelope(results=[], count=0, next=None, prev=None, raw=payload)
-
-
-def _to_int(value: Any, *, default: int) -> int:
-    if isinstance(value, int):
-        return value
-    if isinstance(value, str) and value.isdigit():
-        return int(value)
-    return default
-
-
-def _to_optional_str(value: Any) -> str | None:
-    if value is None:
-        return None
-    text = str(value).strip()
-    return text or None

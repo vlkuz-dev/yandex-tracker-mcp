@@ -61,16 +61,16 @@
 - [x] Run tests — must pass before next task
 
 ### Task 3: Extract pagination into dedicated module
-- [ ] Create `src/yandex_tracker_mcp/pagination.py`
-- [ ] Move `_normalize_page`, `_to_int`, `_to_optional_str` from `tools.py` to `pagination.py`
-- [ ] Make `normalize_page` a public function (remove underscore prefix)
-- [ ] Update `tools.py` imports to use `pagination.normalize_page`
-- [ ] Move tests from `test_tools.py` to new `tests/test_pagination.py`
-- [ ] Add tests for `_to_int` edge cases (string digits, non-digit strings, None)
-- [ ] Add tests for `_to_optional_str` edge cases (None, empty, whitespace, valid string)
-- [ ] Add test for `normalize_page` with `values`/`total` shape (currently untested)
-- [ ] Add test for `normalize_page` with unrecognized payload (dict without results/values)
-- [ ] Run tests — must pass before next task
+- [x] Create `src/yandex_tracker_mcp/pagination.py`
+- [x] Move `_normalize_page`, `_to_int`, `_to_optional_str` from `tools.py` to `pagination.py`
+- [x] Make `normalize_page` a public function (remove underscore prefix)
+- [x] Update `tools.py` imports to use `pagination.normalize_page`
+- [x] Move tests from `test_tools.py` to new `tests/test_pagination.py`
+- [x] Add tests for `_to_int` edge cases (string digits, non-digit strings, None)
+- [x] Add tests for `_to_optional_str` edge cases (None, empty, whitespace, valid string)
+- [x] Add test for `normalize_page` with `values`/`total` shape (currently untested)
+- [x] Add test for `normalize_page` with unrecognized payload (dict without results/values)
+- [x] Run tests — must pass before next task
 
 ### Task 4: Clean up tools.py — separate handler building
 - [ ] Extract `_build_typed_handler` into a dedicated `handlers.py` module
