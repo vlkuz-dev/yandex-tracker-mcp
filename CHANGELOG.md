@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-03-07
+
 ### Changed
 
 - Refactored `TrackerClient` to use a persistent `httpx.AsyncClient` with connection pooling instead of creating a new client per request.
