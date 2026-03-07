@@ -35,3 +35,13 @@ def test_validate_raw_request_rejects_path_traversal() -> None:
 def test_validate_raw_request_rejects_url_encoded_path_traversal() -> None:
     with pytest.raises(TrackerConfigError, match="Path traversal"):
         validate_raw_request(method="GET", path="/v3/issues/%2e%2e/%2e%2e/admin/settings")
+
+
+def test_validate_raw_request_rejects_double_encoded_path_traversal() -> None:
+    with pytest.raises(TrackerConfigError, match="Path traversal"):
+        validate_raw_request(method="GET", path="/v3/issues/%252e%252e/%252e%252e/admin/settings")
+
+
+def test_validate_raw_request_returns_decoded_path() -> None:
+    result = validate_raw_request(method="GET", path="/v3/issues/TEST%2D1")
+    assert result.normalized_path == "/v3/issues/TEST-1"

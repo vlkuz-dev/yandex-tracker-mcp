@@ -91,7 +91,7 @@ def validate_raw_request(method: str, path: str) -> RawGuardResult:
         )
 
     normalized_path = _normalize_path(path)
-    decoded_path = urllib.parse.unquote(normalized_path)
+    decoded_path = _fully_decode(normalized_path)
     parts = [part for part in PurePosixPath(decoded_path).parts if part not in {"/", ""}]
 
     if ".." in parts:
@@ -106,7 +106,21 @@ def validate_raw_request(method: str, path: str) -> RawGuardResult:
             f"Raw request path is outside allowed v3 namespaces: {namespace!r}"
         )
 
-    return RawGuardResult(method=normalized_method, normalized_path=normalized_path)
+    return RawGuardResult(method=normalized_method, normalized_path=decoded_path)
+
+
+def _fully_decode(path: str) -> str:
+    """Decode percent-encoded characters repeatedly until stable.
+
+    Prevents double-encoding bypasses like ``%252e%252e`` which a single
+    ``urllib.parse.unquote`` call would leave as ``%2e%2e``.
+    """
+    previous = path
+    while True:
+        decoded = urllib.parse.unquote(previous)
+        if decoded == previous:
+            return decoded
+        previous = decoded
 
 
 def _normalize_path(path: str) -> str:
