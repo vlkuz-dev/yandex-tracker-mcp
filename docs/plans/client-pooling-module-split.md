@@ -73,13 +73,13 @@
 - [x] Run tests — must pass before next task
 
 ### Task 4: Clean up tools.py — separate handler building
-- [ ] Extract `_build_typed_handler` into a dedicated `handlers.py` module
-- [ ] Move typed handler response envelope construction alongside handler building
-- [ ] Keep `register_tools()` as the orchestrator in `tools.py` — it calls sub-registration functions
-- [ ] Update imports in `tools.py`
-- [ ] Write test for `_build_typed_handler` — verify it creates a callable with correct name/doc
-- [ ] Write test for non-paginated handler response envelope structure
-- [ ] Run tests — must pass before next task
+- [x] Extract `_build_typed_handler` into a dedicated `handlers.py` module
+- [x] Move typed handler response envelope construction alongside handler building
+- [x] Keep `register_tools()` as the orchestrator in `tools.py` — it calls sub-registration functions
+- [x] Update imports in `tools.py`
+- [x] Write test for `_build_typed_handler` — verify it creates a callable with correct name/doc
+- [x] Write test for non-paginated handler response envelope structure
+- [x] Run tests — must pass before next task
 
 ### Task 5: Verify acceptance criteria
 - [ ] Verify httpx.AsyncClient is created once and reused across requests (no per-request overhead)
