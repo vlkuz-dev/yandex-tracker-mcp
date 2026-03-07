@@ -6,6 +6,12 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-03-07
+
+### Added
+
+- Paginated responses now include `total` (from `X-Total-Count` header) and `has_more` fields so callers know how many results exist beyond the current page.
+
 ## [0.1.2] - 2026-03-07
 
 ### Changed
