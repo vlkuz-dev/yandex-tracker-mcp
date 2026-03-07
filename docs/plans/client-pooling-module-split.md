@@ -82,14 +82,14 @@
 - [x] Run tests — must pass before next task
 
 ### Task 5: Verify acceptance criteria
-- [ ] Verify httpx.AsyncClient is created once and reused across requests (no per-request overhead)
-- [ ] Verify pagination logic is isolated in its own module
-- [ ] Verify tools.py is simplified (orchestration only, no business logic)
-- [ ] Verify handler building is testable independently
-- [ ] Run full test suite (unit tests)
-- [ ] Run linter (`make lint`)
-- [ ] Run type checker (`make typecheck`)
-- [ ] Verify all checks pass (`make check`)
+- [x] Verify httpx.AsyncClient is created once and reused across requests (no per-request overhead)
+- [x] Verify pagination logic is isolated in its own module
+- [x] Verify tools.py is simplified (orchestration only, no business logic)
+- [x] Verify handler building is testable independently
+- [x] Run full test suite (unit tests)
+- [x] Run linter (`make lint`)
+- [x] Run type checker (`make typecheck`)
+- [x] Verify all checks pass (`make check`)
 
 ### Task 6: [Final] Update documentation
 - [ ] Update CHANGELOG.md with refactoring entry under [Unreleased]
