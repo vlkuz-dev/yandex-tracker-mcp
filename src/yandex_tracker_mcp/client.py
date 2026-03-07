@@ -21,6 +21,35 @@ class TrackerClient:
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
+        self._http: httpx.AsyncClient | None = None
+
+    async def start(self) -> None:
+        """Create the persistent httpx.AsyncClient with connection pooling."""
+        if self._http is not None:
+            return
+        self._http = httpx.AsyncClient(
+            headers=self._settings.headers(),
+            timeout=httpx.Timeout(self._settings.timeout_seconds),
+            limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
+        )
+
+    async def stop(self) -> None:
+        """Close the underlying httpx.AsyncClient."""
+        if self._http is not None:
+            await self._http.aclose()
+            self._http = None
+
+    async def __aenter__(self) -> TrackerClient:
+        await self.start()
+        return self
+
+    async def __aexit__(self, *exc: object) -> None:
+        await self.stop()
+
+    def _ensure_started(self) -> httpx.AsyncClient:
+        if self._http is None:
+            raise TrackerConfigError("TrackerClient is not started; call start() first")
+        return self._http
 
     async def request(
         self,
@@ -30,22 +59,19 @@ class TrackerClient:
         query: JSONMapping | None = None,
         body: Any | None = None,
     ) -> Any:
+        http = self._ensure_started()
         url = f"{self._settings.base_url}{path}"
-        headers = self._settings.headers()
-        timeout = httpx.Timeout(self._settings.timeout_seconds)
 
         attempt = 0
         while True:
             attempt += 1
             try:
-                async with httpx.AsyncClient(timeout=timeout) as client:
-                    response = await client.request(
-                        method=method,
-                        url=url,
-                        headers=headers,
-                        params=query,
-                        json=body,
-                    )
+                response = await http.request(
+                    method=method,
+                    url=url,
+                    params=query,
+                    json=body,
+                )
             except httpx.RequestError as exc:
                 if attempt > self._settings.retries + 1:
                     raise TrackerAPIError(

@@ -42,15 +42,15 @@
 ## Implementation Steps
 
 ### Task 1: Refactor TrackerClient to use persistent httpx.AsyncClient
-- [ ] Add `_http` attribute to `TrackerClient.__init__` initialized as `None`
-- [ ] Add `async def start(self)` method that creates `httpx.AsyncClient` with connection pooling settings (limits, timeout, headers)
-- [ ] Add `async def stop(self)` method that closes the underlying `httpx.AsyncClient`
-- [ ] Add `__aenter__` / `__aexit__` for context manager support
-- [ ] Refactor `request()` to use `self._http` instead of creating a new client per call — remove the `async with httpx.AsyncClient(...)` block
-- [ ] Move shared headers and timeout into client construction (set once, not per request)
-- [ ] Update tests in `test_client.py` to use start/stop lifecycle
-- [ ] Write tests for start/stop lifecycle (client usable after start, raises after stop)
-- [ ] Run tests — must pass before next task
+- [x] Add `_http` attribute to `TrackerClient.__init__` initialized as `None`
+- [x] Add `async def start(self)` method that creates `httpx.AsyncClient` with connection pooling settings (limits, timeout, headers)
+- [x] Add `async def stop(self)` method that closes the underlying `httpx.AsyncClient`
+- [x] Add `__aenter__` / `__aexit__` for context manager support
+- [x] Refactor `request()` to use `self._http` instead of creating a new client per call — remove the `async with httpx.AsyncClient(...)` block
+- [x] Move shared headers and timeout into client construction (set once, not per request)
+- [x] Update tests in `test_client.py` to use start/stop lifecycle
+- [x] Write tests for start/stop lifecycle (client usable after start, raises after stop)
+- [x] Run tests — must pass before next task
 
 ### Task 2: Wire client lifecycle into FastMCP lifespan
 - [ ] Add lifespan async context manager in `server.py` that starts/stops `TrackerClient`

@@ -30,8 +30,8 @@ async def test_request_success_json(settings: Settings) -> None:
         return_value=httpx.Response(200, json={"uid": "1"})
     )
 
-    client = TrackerClient(settings)
-    payload = await client.request(method="GET", path="/v3/myself")
+    async with TrackerClient(settings) as client:
+        payload = await client.request(method="GET", path="/v3/myself")
 
     assert route.called
     assert payload == {"uid": "1"}
@@ -44,9 +44,9 @@ async def test_request_raises_tracker_api_error(settings: Settings) -> None:
         return_value=httpx.Response(401, json={"message": "Unauthorized"})
     )
 
-    client = TrackerClient(settings)
-    with pytest.raises(TrackerAPIError) as exc:
-        await client.request(method="GET", path="/v3/myself")
+    async with TrackerClient(settings) as client:
+        with pytest.raises(TrackerAPIError) as exc:
+            await client.request(method="GET", path="/v3/myself")
 
     assert exc.value.status_code == 401
     assert "Unauthorized" in exc.value.message
@@ -62,8 +62,8 @@ async def test_request_retries_once_on_503(settings: Settings) -> None:
         ]
     )
 
-    client = TrackerClient(settings)
-    payload = await client.request(method="GET", path="/v3/myself")
+    async with TrackerClient(settings) as client:
+        payload = await client.request(method="GET", path="/v3/myself")
 
     assert route.call_count == 2
     assert payload == {"uid": "1"}
@@ -71,16 +71,91 @@ async def test_request_retries_once_on_503(settings: Settings) -> None:
 
 @pytest.mark.asyncio
 async def test_call_operation_requires_path_param(settings: Settings) -> None:
+    async with TrackerClient(settings) as client:
+        operation = OperationSpec(
+            operation_id="getIssue",
+            domain="issue",
+            action="get",
+            method="GET",
+            path="/v3/issues/{issue_id}",
+            summary="Get issue",
+        )
+
+        with pytest.raises(TrackerConfigError):
+            await client.call_operation(operation, path_params={})
+
+
+# --- Lifecycle tests ---
+
+
+@pytest.mark.asyncio
+async def test_start_creates_http_client(settings: Settings) -> None:
     client = TrackerClient(settings)
-    operation = OperationSpec(
-        operation_id="getIssue",
-        domain="issue",
-        action="get",
-        method="GET",
-        path="/v3/issues/{issue_id}",
-        summary="Get issue",
+    assert client._http is None
+
+    await client.start()
+    assert client._http is not None
+    assert isinstance(client._http, httpx.AsyncClient)
+
+    await client.stop()
+
+
+@pytest.mark.asyncio
+async def test_stop_closes_http_client(settings: Settings) -> None:
+    client = TrackerClient(settings)
+    await client.start()
+    http = client._http
+    assert http is not None
+
+    await client.stop()
+    assert client._http is None
+    assert http.is_closed
+
+
+@pytest.mark.asyncio
+async def test_request_raises_before_start(settings: Settings) -> None:
+    client = TrackerClient(settings)
+    with pytest.raises(TrackerConfigError, match="not started"):
+        await client.request(method="GET", path="/v3/myself")
+
+
+@pytest.mark.asyncio
+async def test_request_raises_after_stop(settings: Settings) -> None:
+    client = TrackerClient(settings)
+    await client.start()
+    await client.stop()
+
+    with pytest.raises(TrackerConfigError, match="not started"):
+        await client.request(method="GET", path="/v3/myself")
+
+
+@pytest.mark.asyncio
+async def test_context_manager(settings: Settings) -> None:
+    client = TrackerClient(settings)
+    async with client:
+        assert client._http is not None
+    assert client._http is None
+
+
+@pytest.mark.asyncio
+async def test_start_is_idempotent(settings: Settings) -> None:
+    client = TrackerClient(settings)
+    await client.start()
+    first_http = client._http
+    await client.start()
+    assert client._http is first_http
+    await client.stop()
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_persistent_client_reused_across_requests(settings: Settings) -> None:
+    respx.get("https://api.tracker.yandex.net/v3/myself").mock(
+        return_value=httpx.Response(200, json={"uid": "1"})
     )
 
-    with pytest.raises(TrackerConfigError):
-        await client.call_operation(operation, path_params={})
-
+    async with TrackerClient(settings) as client:
+        http_before = client._http
+        await client.request(method="GET", path="/v3/myself")
+        await client.request(method="GET", path="/v3/myself")
+        assert client._http is http_before
