@@ -32,6 +32,17 @@ ISSUE_KEEP_FIELDS: set[str] = {
     "storyPoints",
 }
 
+# Fields excluded from list/paginated responses (too verbose for summaries).
+_LIST_EXCLUDE_FIELDS: set[str] = {
+    "description",
+    "followers",
+    "self",
+    "createdBy",
+    "updatedBy",
+    "createdAt",
+    "updatedAt",
+}
+
 # Nested objects flattened to their ``display`` value.
 _FLATTEN_TO_DISPLAY: set[str] = {
     "status",
@@ -69,14 +80,17 @@ def _flatten_value(key: str, value: Any) -> Any:
     return value
 
 
-def compact_issue(issue: dict[str, Any]) -> dict[str, Any]:
+def compact_issue(issue: dict[str, Any], *, for_list: bool = False) -> dict[str, Any]:
     """Return a compacted copy of an issue dict.
 
     * Drops fields not in ``ISSUE_KEEP_FIELDS``
     * Flattens nested objects (users → display name, queue/parent → key)
+    * When *for_list* is True, additionally strips verbose fields
+      (description, followers, timestamps, etc.) for concise listings.
     """
+    fields = ISSUE_KEEP_FIELDS - _LIST_EXCLUDE_FIELDS if for_list else ISSUE_KEEP_FIELDS
     result: dict[str, Any] = {}
-    for key in ISSUE_KEEP_FIELDS:
+    for key in fields:
         if key not in issue:
             continue
         result[key] = _flatten_value(key, issue[key])
@@ -90,8 +104,12 @@ def compact_issue(issue: dict[str, Any]) -> dict[str, Any]:
 _ISSUE_DOMAINS: set[str] = {"issue", "issues"}
 
 
-def get_shaper(domain: str) -> Shaper | None:
+def _compact_issue_for_list(issue: dict[str, Any]) -> dict[str, Any]:
+    return compact_issue(issue, for_list=True)
+
+
+def get_shaper(domain: str, *, for_list: bool = False) -> Shaper | None:
     """Return a shaping function for the given operation domain, or None."""
     if domain in _ISSUE_DOMAINS:
-        return compact_issue
+        return _compact_issue_for_list if for_list else compact_issue
     return None

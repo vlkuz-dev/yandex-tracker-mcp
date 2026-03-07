@@ -210,6 +210,7 @@ class TestShapingIntegration:
             {
                 "key": "PROJ-1",
                 "summary": "A",
+                "description": "Long description text",
                 "votes": 3,
                 "status": {"id": "1", "key": "open", "display": "Open", "self": "..."},
             },
@@ -223,6 +224,22 @@ class TestShapingIntegration:
         assert item["key"] == "PROJ-1"
         assert item["status"] == "Open"
         assert "votes" not in item
+        assert "description" not in item  # excluded in list mode
+
+    @pytest.mark.asyncio
+    async def test_non_paginated_issue_keeps_description(self) -> None:
+        operation = _make_operation(paginated=False)
+        api_data = {
+            "key": "PROJ-1",
+            "summary": "Test",
+            "description": "Important details",
+        }
+        client = _mock_client(api_data)
+
+        handler = build_typed_handler(client, operation)
+        result = await handler(path_params={"issueKey": "PROJ-1"})
+
+        assert result["description"] == "Important details"
 
     @pytest.mark.asyncio
     async def test_compact_false_skips_shaping(self) -> None:

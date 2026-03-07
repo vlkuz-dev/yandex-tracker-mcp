@@ -25,7 +25,8 @@ def build_typed_handler(
     API response directly.
     """
 
-    shaper = get_shaper(operation.domain)
+    detail_shaper = get_shaper(operation.domain)
+    list_shaper = get_shaper(operation.domain, for_list=True)
 
     async def _handler(
         path_params: dict[str, Any] | None = None,
@@ -53,11 +54,11 @@ def build_typed_handler(
         if operation.paginated:
             body_data, headers = response
             page = normalize_page(body_data, headers)
-            if compact and shaper:
-                page.results = [shaper(item) for item in page.results]
+            if compact and list_shaper:
+                page.results = [list_shaper(item) for item in page.results]
             return page.to_dict()
-        if compact and shaper and isinstance(response, dict):
-            return shaper(response)
+        if compact and detail_shaper and isinstance(response, dict):
+            return detail_shaper(response)
         return response
 
     _handler.__name__ = f"tool_{operation.domain}_{operation.action}"

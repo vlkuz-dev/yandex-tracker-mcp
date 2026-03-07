@@ -130,6 +130,58 @@ class TestCompactIssue:
         assert result["tags"] == ["backend", "urgent"]
 
 
+class TestCompactIssueForList:
+    """Tests for compact_issue with for_list=True (paginated listings)."""
+
+    def test_excludes_description(self) -> None:
+        issue = {"key": "X-1", "summary": "Task", "description": "Long text..."}
+        result = compact_issue(issue, for_list=True)
+        assert "description" not in result
+        assert result["key"] == "X-1"
+        assert result["summary"] == "Task"
+
+    def test_excludes_verbose_fields(self) -> None:
+        issue = {
+            "key": "X-1",
+            "summary": "Task",
+            "self": "https://...",
+            "followers": [{"id": "u1", "display": "Alice", "self": "..."}],
+            "createdBy": {"id": "u1", "display": "Alice", "self": "..."},
+            "updatedBy": {"id": "u2", "display": "Bob", "self": "..."},
+            "createdAt": "2025-01-01T00:00:00.000+0000",
+            "updatedAt": "2025-01-02T00:00:00.000+0000",
+        }
+        result = compact_issue(issue, for_list=True)
+        excluded = (
+            "description", "followers", "self",
+            "createdBy", "updatedBy", "createdAt", "updatedAt",
+        )
+        for field in excluded:
+            assert field not in result, f"{field} should be excluded in list mode"
+
+    def test_keeps_essential_fields(self) -> None:
+        issue = {
+            "key": "X-1",
+            "summary": "Task",
+            "status": {"id": "1", "key": "open", "display": "Open", "self": "..."},
+            "type": {"id": "2", "key": "task", "display": "Task", "self": "..."},
+            "priority": {"id": "3", "key": "normal", "display": "Normal", "self": "..."},
+            "assignee": {"id": "u1", "display": "Alice", "self": "..."},
+            "queue": {"id": "q1", "key": "PROJ", "display": "Project", "self": "..."},
+            "deadline": "2025-03-01",
+            "tags": ["urgent"],
+        }
+        result = compact_issue(issue, for_list=True)
+        assert result["key"] == "X-1"
+        assert result["status"] == "Open"
+        assert result["type"] == "Task"
+        assert result["priority"] == "Normal"
+        assert result["assignee"] == "Alice"
+        assert result["queue"] == "PROJ"
+        assert result["deadline"] == "2025-03-01"
+        assert result["tags"] == ["urgent"]
+
+
 class TestGetShaper:
     """Tests for get_shaper domain routing."""
 
@@ -138,6 +190,20 @@ class TestGetShaper:
 
     def test_returns_shaper_for_issues_domain(self) -> None:
         assert get_shaper("issues") is not None
+
+    def test_returns_list_shaper_for_issues(self) -> None:
+        shaper = get_shaper("issues", for_list=True)
+        assert shaper is not None
+        # List shaper should exclude description
+        result = shaper({"key": "X-1", "description": "text"})
+        assert "description" not in result
+
+    def test_returns_detail_shaper_by_default(self) -> None:
+        shaper = get_shaper("issue")
+        assert shaper is not None
+        # Detail shaper should keep description
+        result = shaper({"key": "X-1", "description": "text"})
+        assert result["description"] == "text"
 
     def test_returns_none_for_other_domains(self) -> None:
         assert get_shaper("queue") is None
