@@ -15,7 +15,6 @@ def normalize_page(payload: Any) -> PaginatedEnvelope:
             count=len(payload),
             next=None,
             prev=None,
-            raw=payload,
         )
 
     if isinstance(payload, dict):
@@ -31,7 +30,6 @@ def normalize_page(payload: Any) -> PaginatedEnvelope:
                 count=count,
                 next=next_page,
                 prev=prev_page,
-                raw=payload,
             )
 
         if isinstance(payload.get("values"), list):
@@ -42,10 +40,9 @@ def normalize_page(payload: Any) -> PaginatedEnvelope:
                 count=count,
                 next=_to_optional_str(payload.get("next")),
                 prev=_to_optional_str(payload.get("prev")),
-                raw=payload,
             )
 
-    return PaginatedEnvelope(results=[], count=0, next=None, prev=None, raw=payload)
+    return PaginatedEnvelope(results=[], count=0, next=None, prev=None)
 
 
 def _to_int(value: Any, *, default: int) -> int:

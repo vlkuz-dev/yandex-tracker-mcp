@@ -39,7 +39,6 @@ class PaginatedEnvelope:
     count: int
     next: str | None
     prev: str | None
-    raw: Any
 
     def to_dict(self) -> JSONMapping:
         return {
@@ -47,5 +46,4 @@ class PaginatedEnvelope:
             "count": self.count,
             "next": self.next,
             "prev": self.prev,
-            "raw": self.raw,
         }

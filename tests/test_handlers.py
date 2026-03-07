@@ -64,10 +64,10 @@ class TestBuildTypedHandler:
 
 
 class TestNonPaginatedHandler:
-    """Tests for non-paginated handler response envelope structure."""
+    """Tests for non-paginated handler response structure."""
 
     @pytest.mark.asyncio
-    async def test_returns_operation_metadata(self) -> None:
+    async def test_returns_api_response_directly(self) -> None:
         operation = _make_operation(paginated=False)
         api_data = {"key": "PROJ-1", "summary": "Test issue"}
         client = _mock_client(api_data)
@@ -75,11 +75,7 @@ class TestNonPaginatedHandler:
         handler = build_typed_handler(client, operation)
         result = await handler(path_params={"issueKey": "PROJ-1"})
 
-        assert result["operation_id"] == "issue_get"
-        assert result["tool_name"] == "tracker_issue_get"
-        assert result["method"] == "GET"
-        assert result["path_template"] == "/v3/issues/{issueKey}"
-        assert result["data"] == api_data
+        assert result == api_data
 
     @pytest.mark.asyncio
     async def test_passes_params_to_client(self) -> None:
@@ -99,17 +95,6 @@ class TestNonPaginatedHandler:
             query={"expand": "transitions"},
             body=None,
         )
-
-    @pytest.mark.asyncio
-    async def test_envelope_has_exactly_expected_keys(self) -> None:
-        operation = _make_operation(paginated=False)
-        client = _mock_client({"key": "X-1"})
-
-        handler = build_typed_handler(client, operation)
-        result = await handler()
-
-        expected_keys = {"operation_id", "tool_name", "method", "path_template", "data"}
-        assert set(result.keys()) == expected_keys
 
 
 class TestPaginatedHandler:
@@ -145,3 +130,127 @@ class TestPaginatedHandler:
         assert result["results"] == [{"key": "A-1"}]
         assert result["count"] == 10
         assert result["next"] == "/v3/issues/_search?page=2"
+
+    @pytest.mark.asyncio
+    async def test_injects_default_per_page(self) -> None:
+        operation = _make_paginated_operation()
+        client = _mock_client([])
+
+        handler = build_typed_handler(client, operation)
+        await handler(body={"filter": {}})
+
+        call_kwargs = client.call_operation.call_args[1]
+        assert call_kwargs["query"]["perPage"] == 10
+
+    @pytest.mark.asyncio
+    async def test_preserves_user_per_page(self) -> None:
+        operation = _make_paginated_operation()
+        client = _mock_client([])
+
+        handler = build_typed_handler(client, operation)
+        await handler(query={"perPage": 50}, body={"filter": {}})
+
+        call_kwargs = client.call_operation.call_args[1]
+        assert call_kwargs["query"]["perPage"] == 50
+
+
+class TestShapingIntegration:
+    """Tests for response shaping in handlers."""
+
+    @pytest.mark.asyncio
+    async def test_non_paginated_issue_is_compacted(self) -> None:
+        operation = _make_operation(paginated=False)
+        api_data = {
+            "key": "PROJ-1",
+            "summary": "Test",
+            "votes": 5,
+            "favorite": True,
+            "status": {"id": "1", "key": "open", "display": "Open", "self": "..."},
+        }
+        client = _mock_client(api_data)
+
+        handler = build_typed_handler(client, operation)
+        result = await handler(path_params={"issueKey": "PROJ-1"})
+
+        assert result["key"] == "PROJ-1"
+        assert result["status"] == "Open"
+        assert "votes" not in result
+        assert "favorite" not in result
+
+    @pytest.mark.asyncio
+    async def test_paginated_issues_are_compacted(self) -> None:
+        operation = _make_paginated_operation()
+        api_data = [
+            {
+                "key": "PROJ-1",
+                "summary": "A",
+                "votes": 3,
+                "status": {"id": "1", "key": "open", "display": "Open", "self": "..."},
+            },
+        ]
+        client = _mock_client(api_data)
+
+        handler = build_typed_handler(client, operation)
+        result = await handler(body={"filter": {}})
+
+        item = result["results"][0]
+        assert item["key"] == "PROJ-1"
+        assert item["status"] == "Open"
+        assert "votes" not in item
+
+    @pytest.mark.asyncio
+    async def test_compact_false_skips_shaping(self) -> None:
+        operation = _make_operation(paginated=False)
+        api_data = {
+            "key": "PROJ-1",
+            "summary": "Test",
+            "votes": 5,
+            "favorite": True,
+        }
+        client = _mock_client(api_data)
+
+        handler = build_typed_handler(client, operation)
+        result = await handler(query={"_compact": False})
+
+        assert result == api_data
+
+    @pytest.mark.asyncio
+    async def test_compact_false_paginated_skips_shaping(self) -> None:
+        operation = _make_paginated_operation()
+        raw_issue = {"key": "PROJ-1", "votes": 10, "favorite": True}
+        client = _mock_client([raw_issue])
+
+        handler = build_typed_handler(client, operation)
+        result = await handler(query={"_compact": False}, body={})
+
+        assert result["results"][0]["votes"] == 10
+
+    @pytest.mark.asyncio
+    async def test_compact_param_not_sent_to_api(self) -> None:
+        operation = _make_operation(paginated=False)
+        client = _mock_client({"key": "X-1"})
+
+        handler = build_typed_handler(client, operation)
+        await handler(query={"_compact": False, "expand": "transitions"})
+
+        call_kwargs = client.call_operation.call_args[1]
+        assert "_compact" not in call_kwargs["query"]
+        assert call_kwargs["query"]["expand"] == "transitions"
+
+    @pytest.mark.asyncio
+    async def test_non_issue_domain_not_compacted(self) -> None:
+        operation = OperationSpec(
+            operation_id="queue_get",
+            domain="queue",
+            action="get_metadata",
+            method="GET",
+            path="/v3/queues/{queue_id}",
+            summary="Get queue metadata",
+        )
+        api_data = {"id": "q1", "key": "PROJ", "extra_field": "kept"}
+        client = _mock_client(api_data)
+
+        handler = build_typed_handler(client, operation)
+        result = await handler()
+
+        assert result == api_data

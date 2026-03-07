@@ -87,7 +87,6 @@ def test_normalize_page_unrecognized_dict() -> None:
     assert data["count"] == 0
     assert data["next"] is None
     assert data["prev"] is None
-    assert data["raw"] == payload
 
 
 def test_normalize_page_non_list_non_dict() -> None:
