@@ -50,4 +50,3 @@ def main_http(*, host: str = "0.0.0.0", port: int = 8000, path: str = "/mcp") ->
     settings = Settings.from_env()
     server = create_server(settings)
     server.run(transport="streamable-http", host=host, port=port, path=path)
-

@@ -86,8 +86,7 @@ def validate_raw_request(method: str, path: str) -> RawGuardResult:
     normalized_method = _normalize_method(method)
     if normalized_method not in ALLOWED_METHODS:
         raise TrackerConfigError(
-            "Unsupported method for raw request. "
-            f"Allowed: {sorted(ALLOWED_METHODS)}"
+            f"Unsupported method for raw request. Allowed: {sorted(ALLOWED_METHODS)}"
         )
 
     normalized_path = _normalize_path(path)
@@ -99,8 +98,7 @@ def validate_raw_request(method: str, path: str) -> RawGuardResult:
     namespace = parts[1]
     if namespace not in ALLOWED_V3_NAMESPACES:
         raise TrackerConfigError(
-            "Raw request path is outside allowed v3 namespaces: "
-            f"{namespace!r}"
+            f"Raw request path is outside allowed v3 namespaces: {namespace!r}"
         )
 
     return RawGuardResult(method=normalized_method, normalized_path=normalized_path)
@@ -123,8 +121,10 @@ def _normalize_method(method: str) -> HTTPMethod:
 
 
 def _load_registry_json() -> list[dict[str, Any]]:
-    raw = resources.files("yandex_tracker_mcp").joinpath("operations.json").read_text(
-        encoding="utf-8"
+    raw = (
+        resources.files("yandex_tracker_mcp")
+        .joinpath("operations.json")
+        .read_text(encoding="utf-8")
     )
     data = json.loads(raw)
     if not isinstance(data, list):
@@ -145,9 +145,7 @@ def _validate_registry(specs: list[OperationSpec]) -> None:
         seen_op_ids.add(spec.operation_id)
 
         if spec.method not in ALLOWED_METHODS:
-            raise TrackerConfigError(
-                f"Invalid HTTP method {spec.method!r} in {spec.operation_id}"
-            )
+            raise TrackerConfigError(f"Invalid HTTP method {spec.method!r} in {spec.operation_id}")
 
         if not spec.path.startswith("/v3/") and spec.path != "/v3/myself":
             raise TrackerConfigError(
@@ -156,7 +154,5 @@ def _validate_registry(specs: list[OperationSpec]) -> None:
 
         if spec.typed_tool:
             if spec.tool_name in seen_tools:
-                raise TrackerConfigError(
-                    f"Duplicate typed tool name in registry: {spec.tool_name}"
-                )
+                raise TrackerConfigError(f"Duplicate typed tool name in registry: {spec.tool_name}")
             seen_tools.add(spec.tool_name)

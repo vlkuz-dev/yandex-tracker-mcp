@@ -36,17 +36,14 @@ class Settings:
 
         token_type = source.get("YANDEX_TRACKER_TOKEN_TYPE", "OAuth").strip() or "OAuth"
         if token_type not in SUPPORTED_TOKEN_TYPES:
-            raise TrackerConfigError(
-                "YANDEX_TRACKER_TOKEN_TYPE must be one of: OAuth, Bearer"
-            )
+            raise TrackerConfigError("YANDEX_TRACKER_TOKEN_TYPE must be one of: OAuth, Bearer")
 
         org_id = _normalize_optional(source.get("YANDEX_TRACKER_ORG_ID"))
         cloud_org_id = _normalize_optional(source.get("YANDEX_TRACKER_CLOUD_ORG_ID"))
 
         if bool(org_id) == bool(cloud_org_id):
             raise TrackerConfigError(
-                "Set exactly one of YANDEX_TRACKER_ORG_ID or "
-                "YANDEX_TRACKER_CLOUD_ORG_ID"
+                "Set exactly one of YANDEX_TRACKER_ORG_ID or YANDEX_TRACKER_CLOUD_ORG_ID"
             )
 
         base_url = source.get("YANDEX_TRACKER_BASE_URL", DEFAULT_BASE_URL).strip()

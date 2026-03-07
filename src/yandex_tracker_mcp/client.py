@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import re
+import urllib.parse
 from typing import Any
 
 import httpx
@@ -126,9 +127,7 @@ def _build_path(path_template: str, path_params: JSONMapping | None) -> str:
         if raw_value is None:
             raise TrackerConfigError(f"Path parameter cannot be null: {key}")
         value_str = str(raw_value)
-        if "/" in value_str:
-            raise TrackerConfigError(f"Path parameter must not contain '/': {key}")
-        return value_str
+        return urllib.parse.quote(value_str, safe="")
 
     built = _PATH_PARAM_RE.sub(replace, path_template)
     if "{" in built or "}" in built:

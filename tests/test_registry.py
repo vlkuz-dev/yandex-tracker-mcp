@@ -25,4 +25,3 @@ def test_validate_raw_request_rejects_non_v3() -> None:
 def test_validate_raw_request_rejects_unknown_namespace() -> None:
     with pytest.raises(TrackerConfigError):
         validate_raw_request(method="GET", path="/v3/admin/settings")
-

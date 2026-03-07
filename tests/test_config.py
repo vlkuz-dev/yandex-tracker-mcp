@@ -64,4 +64,3 @@ def test_settings_fail_on_invalid_token_type() -> None:
                 "YANDEX_TRACKER_TOKEN_TYPE": "Basic",
             }
         )
-

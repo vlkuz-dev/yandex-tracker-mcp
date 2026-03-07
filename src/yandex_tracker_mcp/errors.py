@@ -22,4 +22,3 @@ class TrackerAPIError(Exception):
         if self.details:
             return f"Tracker API error {self.status_code}: {self.message} ({self.details})"
         return f"Tracker API error {self.status_code}: {self.message}"
-
